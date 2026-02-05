@@ -1,21 +1,18 @@
-import { useNavigate } from "react-router-dom";
-
 export default function Login() {
-  const navigate = useNavigate();
-  const school = localStorage.getItem("school");
+  const school = localStorage.getItem("schoolName");
 
   return (
     <div className="card">
       <h2>{school}</h2>
-      <p>Hogyan lépsz be?</p>
+      <p>Belépés</p>
 
-      <button onClick={() => navigate("/dashboard?role=student")}>
+      <button onClick={() => window.location.href="/dashboard?role=student"}>
         🎓 Diák
       </button>
 
       <br /><br />
 
-      <button className="secondary" onClick={() => navigate("/dashboard?role=teacher")}>
+      <button className="secondary" onClick={() => window.location.href="/dashboard?role=teacher"}>
         🧑‍🏫 Tanár
       </button>
     </div>

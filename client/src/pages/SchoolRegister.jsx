@@ -1,30 +1,41 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = "http://localhost:3000/api";
+
 export default function SchoolRegister() {
   const [name, setName] = useState("");
   const navigate = useNavigate();
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!name) return;
-    localStorage.setItem("school", name);
+
+    const res = await fetch(`${API_URL}/schools`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name })
+    });
+
+    const school = await res.json();
+    localStorage.setItem("schoolId", school.id);
+    localStorage.setItem("schoolName", school.name);
+
     navigate("/login");
   }
 
   return (
     <div className="card">
       <h1>🎨 TemperaNapló</h1>
-      <p>Regisztráld az iskolád</p>
+      <p>Iskola regisztráció</p>
 
-      <label>Iskola neve</label>
       <input
-        placeholder="pl. József Attila Gimnázium"
+        placeholder="Iskola neve"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
 
       <br /><br />
-      <button onClick={handleSubmit}>Tovább</button>
+      <button onClick={handleSubmit}>Regisztrálás</button>
     </div>
   );
 }
