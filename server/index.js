@@ -1,38 +1,41 @@
-import express from "express";
-import cors from "cors";
-import { v4 as uuid } from "uuid";
+const subjects = []; // tantárgyak
+const grades = [];   // jegyek
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+// tantárgy létrehozása (iskolához kötve)
+app.post("/api/subjects", (req, res) => {
+  const { name, schoolId } = req.body;
+  if (!name || !schoolId) return res.status(400).json({ error: "Hiányzó adat" });
 
-// ideiglenes memória (deploy után DB-re cseréljük)
-const schools = [];
-
-// iskola regisztráció
-app.post("/api/schools", (req, res) => {
-  const { name } = req.body;
-
-  if (!name) {
-    return res.status(400).json({ error: "Iskola neve kötelező" });
-  }
-
-  const school = {
-    id: uuid(),
-    name
-  };
-
-  schools.push(school);
-  res.json(school);
+  const subject = { id: uuid(), name, schoolId };
+  subjects.push(subject);
+  res.json(subject);
 });
 
-// debug / teszt
-app.get("/api/schools", (req, res) => {
-  res.json(schools);
+// tantárgyak lekérdezése egy iskolához
+app.get("/api/subjects/:schoolId", (req, res) => {
+  const { schoolId } = req.params;
+  res.json(subjects.filter(s => s.schoolId === schoolId));
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log("Tempera API fut:", PORT)
-);
+// jegy hozzáadása
+app.post("/api/grades", (req, res) => {
+  const { userId, subjectId, grade, date } = req.body;
+  if (!userId || !subjectId || grade == null || !date)
+    return res.status(400).json({ error: "Hiányzó adat" });
 
+  const g = { id: uuid(), userId, subjectId, grade, date };
+  grades.push(g);
+  res.json(g);
+});
+
+// felhasználó jegyei tantárgyak szerint
+app.get("/api/grades/:userId", (req, res) => {
+  const { userId } = req.params;
+  const userGrades = grades
+    .filter(g => g.userId === userId)
+    .map(g => {
+      const subject = subjects.find(s => s.id === g.subjectId);
+      return { ...g, subjectName: subject ? subject.name : "Ismeretlen" };
+    });
+  res.json(userGrades);
+});
