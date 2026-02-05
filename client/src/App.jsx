@@ -7,9 +7,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<SchoolSelect />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+<Route path="/" element={<SchoolRegister />} />
+<Route path="/login" element={<Login />} />
+<Route path="/dashboard" element={<Dashboard />} />
+
       </Routes>
     </BrowserRouter>
   );
