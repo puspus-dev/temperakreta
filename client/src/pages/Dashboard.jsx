@@ -1,19 +1,21 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
+import TemperaLog from "../components/TemperaLog";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Dashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const [grades, setGrades] = useState([]);
 
   useEffect(() => {
-    fetch(`https://tempera-api.onrender.com/api/grades/${user.id}`)
-      .then(r => r.json())
-      .then(setGrades);
+    fetch(`${API_URL}/grades/${user.id}`).then(r => r.json()).then(setGrades);
   }, []);
 
   return (
     <div style={{ padding: "2rem" }}>
       <h1>Szia, {user.name} 👋</h1>
+      <p>{user.role === "teacher" ? "🧑‍🏫 Tanár" : "🎓 Diák"} mód</p>
 
       <div className="card">
         <h3>📊 Jegyek</h3>
@@ -27,9 +29,7 @@ export default function Dashboard() {
         </ResponsiveContainer>
       </div>
 
-      <div className="card">
-        <p>📓 Tempera napló – hamarosan</p>
-      </div>
+      <TemperaLog userId={user.id} />
     </div>
   );
 }
