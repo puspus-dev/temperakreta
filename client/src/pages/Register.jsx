@@ -8,30 +8,13 @@ export default function Register() {
   const [school, setSchool] = useState("");
 
   const register = async () => {
-    // 1. auth user
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    if (error || !data.user) return alert(error?.message);
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return alert(error.message);
 
-    // 2. iskola
-    const { data: schoolData } = await supabase
-      .from("schools")
-      .insert({ name: school })
-      .select()
-      .single();
-
-    // 3. profil
-    await supabase.from("users").insert({
-      id: data.user.id,
-      email,
-      name,
-      role: "admin",
-      school_id: schoolData.id,
-    });
-
-    alert("Sikeres regisztráció");
+    // Demo: localStorage-be mentés
+    localStorage.setItem("user", JSON.stringify({ name, email, role: "admin" }));
+    alert("Sikeres regisztráció!");
+    window.location.href = "/dashboard";
   };
 
   return (
