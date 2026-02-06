@@ -6,9 +6,14 @@ export default function Login() {
   const [password, setPassword] = useState("");
 
   const login = async () => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
     if (error) return alert(error.message);
-    localStorage.setItem("user", JSON.stringify({ email, role: "admin" })); // ideiglenes demo role
+
+    // a hook majd lekéri a teljes user adatot
     window.location.href = "/dashboard";
   };
 

@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+// IDE ÍRD BE A SAJÁT tempera-api adataidat
+const SUPABASE_URL = "https://hjuwmgukpcgoqyiaptlo.supabase.co";       // a tempera-api URL-ed
+const SUPABASE_ANON_KEY = "sb_publishable_g-L8nE_Gvlu0QiWBIHHsAQ_asrUVGli";      // a tempera-api anon key
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
