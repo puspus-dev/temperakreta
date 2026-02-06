@@ -1,36 +1,47 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { supabase } from "../lib/supabase";
 
 export default function Register() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState("student");
-  const navigate = useNavigate();
+  const [school, setSchool] = useState("");
 
-  async function handleRegister() {
-    const schoolId = localStorage.getItem("schoolId");
-    const res = await fetch(`${API_URL}/users`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, role, schoolId })
+  const register = async () => {
+    // 1. auth user
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
     });
-    const user = await res.json();
-    localStorage.setItem("user", JSON.stringify(user));
-    navigate("/dashboard");
-  }
+    if (error || !data.user) return alert(error?.message);
+
+    // 2. iskola
+    const { data: schoolData } = await supabase
+      .from("schools")
+      .insert({ name: school })
+      .select()
+      .single();
+
+    // 3. profil
+    await supabase.from("users").insert({
+      id: data.user.id,
+      email,
+      name,
+      role: "admin",
+      school_id: schoolData.id,
+    });
+
+    alert("Sikeres regisztráció");
+  };
 
   return (
     <div className="card">
-      <h2>Regisztráció</h2>
-      <input placeholder="Neved" value={name} onChange={e => setName(e.target.value)} />
-      <select value={role} onChange={e => setRole(e.target.value)}>
-        <option value="student">🎓 Diák</option>
-        <option value="teacher">🧑‍🏫 Tanár</option>
-        <option value="admin">🛠️ Admin</option>
-      </select>
-      <br /><br />
-      <button onClick={handleRegister}>Kész</button>
+      <h2>🎓 Iskola regisztráció</h2>
+      <input placeholder="Név" onChange={e => setName(e.target.value)} />
+      <input placeholder="Iskola" onChange={e => setSchool(e.target.value)} />
+      <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
+      <input type="password" placeholder="Jelszó" onChange={e => setPassword(e.target.value)} />
+      <button onClick={register}>Regisztrálás</button>
     </div>
   );
 }

@@ -1,55 +1,35 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 type User = {
+  id: string;
   name: string;
-  role: "admin" | "user";
+  email: string;
+  role: string;
 };
 
 export default function Admin() {
-  // 🛡️ SSR / build védelem
-  if (typeof window === "undefined") {
-    return null;
-  }
+  const [users, setUsers] = useState<User[]>([]);
 
-  const userRaw = window.localStorage.getItem("user");
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
-  let user: User | null = null;
-
-  try {
-    if (userRaw) {
-      user = JSON.parse(userRaw) as User;
-    }
-  } catch {
-    user = null;
-  }
-
-  // 🔒 jogosultság védelem
-  if (!user || user.role !== "admin") {
-    return (
-      <div className="card">
-        <h2>⛔ Nincs admin jogosultság</h2>
-      </div>
-    );
-  }
-
-  const schoolName =
-    window.localStorage.getItem("schoolName") ?? "Ismeretlen iskola";
+  const loadUsers = async () => {
+    const { data } = await supabase.from("users").select("*");
+    setUsers(data || []);
+  };
 
   return (
-    <div className="card">
-      <h2>🛠️ Admin panel</h2>
+    <div>
+      <h2>🛠️ Admin – Felhasználók</h2>
 
-      <p>
-        <strong>Iskola:</strong> {schoolName}
-      </p>
-
-      <ul>
-        <li>👥 Felhasználók kezelése</li>
-        <li>📚 Tantárgyak létrehozása</li>
-        <li>📊 Statisztikák</li>
-      </ul>
-
-      <small>Admin: {user.name}</small>
+      {users.map(u => (
+        <div key={u.id} className="card">
+          <b>{u.name}</b> – {u.role} <br />
+          {u.email}
+        </div>
+      ))}
     </div>
   );
 }
