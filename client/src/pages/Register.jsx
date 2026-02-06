@@ -27,6 +27,7 @@ export default function Register() {
       <select value={role} onChange={e => setRole(e.target.value)}>
         <option value="student">🎓 Diák</option>
         <option value="teacher">🧑‍🏫 Tanár</option>
+        <option value="admin">🛠️ Admin</option>
       </select>
       <br /><br />
       <button onClick={handleRegister}>Kész</button>
