@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TemperaNapló — Demo</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Arial;background:#f7fafc;color:#0f172a;padding:20px}
+    .card{background:white;border-radius:8px;padding:16px;box-shadow:0 1px 3px rgba(2,6,23,0.08);max-width:800px;margin:auto}
+    .entry{border-bottom:1px solid #eef2f7;padding:12px 0}
+    .meta{color:#64748b;font-size:12px}
+    .form-row{display:flex;gap:8px}
+    textarea{flex:1;min-height:64px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>TemperaNapló (demo)</h1>
+    <p class="meta">Realtime napló — admin joggal bejegyzés küldése</p>
+
+    <div style="margin:12px 0">
+      <label>Admin token: <input id="token" placeholder="devtoken" /></label>
+    </div>
+
+    <div style="margin:12px 0" class="form-row">
+      <input id="author" placeholder="Szerző (pl. Osztályfőnök)" />
+      <select id="school"></select>
+      <button id="refresh">Frissít</button>
+    </div>
+
+    <div style="margin:12px 0" class="form-row">
+      <textarea id="content" placeholder="Bejegyzés szövege..."></textarea>
+      <button id="send">Küldés</button>
+    </div>
+
+    <h3>Bejegyzések</h3>
+    <div id="entries"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const entriesEl = document.getElementById('entries');
+    const tokenInput = document.getElementById('token');
+
+    async function load(){
+      const schoolEl = document.getElementById('school');
+      const schoolId = schoolEl && schoolEl.value ? schoolEl.value : '';
+      const url = '/api/entries' + (schoolId ? '?schoolId=' + encodeURIComponent(schoolId) : '');
+      const res = await fetch(url);
+      const data = await res.json();
+      render(data);
+    }
+
+    async function loadSchools(){
+      const res = await fetch('/api/schools');
+      const list = await res.json();
+      const sel = document.getElementById('school');
+      sel.innerHTML = '';
+      list.forEach(s=>{
+        const o = document.createElement('option'); o.value = s.id; o.textContent = s.name; sel.appendChild(o);
+      });
+    }
+
+    function render(list){
+      entriesEl.innerHTML = '';
+      list.forEach(e => {
+        const d = document.createElement('div');
+        d.className = 'entry';
+        d.innerHTML = `<div style="display:flex;justify-content:space-between"><strong>${escapeHtml(e.author)}</strong><span class="meta">${new Date(e.createdAt).toLocaleString()}</span></div><div>${escapeHtml(e.content)}</div>`;
+        entriesEl.appendChild(d);
+      });
+    }
+
+    function escapeHtml(s){return s ? s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) : ''}
+
+    document.getElementById('send').addEventListener('click', async ()=>{
+      const content = document.getElementById('content').value.trim();
+      const author = document.getElementById('author').value.trim() || 'Admin';
+      const token = tokenInput.value.trim();
+      const schoolEl = document.getElementById('school');
+      const schoolId = schoolEl && schoolEl.value ? Number(schoolEl.value) : null;
+      if(!content) return alert('Írj tartalmat');
+      if(!token) return alert('Adj meg egy bejelentkezett token-t (Login)');
+      const res = await fetch('/api/entries', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({author,content,schoolId})});
+      if(res.ok){ document.getElementById('content').value=''; }
+      else { const j = await res.json(); alert('Hiba: '+(j.error||res.status)); }
+    });
+
+    document.getElementById('refresh').addEventListener('click', load);
+
+    socket.on('entry_created', entry => { load(); });
+    socket.on('school_created', s=>{ loadSchools(); });
+    socket.on('entry_updated', entry => load());
+    socket.on('entry_deleted', payload => load());
+
+    loadSchools().then(()=>load());
+  </script>
+</body>
+</html>

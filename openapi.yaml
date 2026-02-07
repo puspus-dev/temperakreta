@@ -1,0 +1,115 @@
+openapi: 3.0.0
+info:
+  title: TemperaNapló API (demo)
+  version: 0.1.0
+  description: Realtime napló API — egyszerű demo
+servers:
+  - url: http://localhost:3000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /api/entries:
+    get:
+      summary: List of entries
+      parameters:
+        - in: query
+          name: schoolId
+          schema:
+            type: integer
+          description: Filter entries by school id
+      responses:
+        '200':
+          description: Array of entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entry'
+    post:
+      summary: Create entry (admin)
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          description: Bearer token (`Bearer <token>`)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                author:
+                  type: string
+                content:
+                  type: string
+                schoolId:
+                  type: integer
+      responses:
+        '201':
+          description: Created
+      security:
+        - bearerAuth: []
+
+  /api/auth/register:
+    post:
+      summary: Register initial admin (only if no users exist)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Registered
+
+  /api/auth/login:
+    post:
+      summary: Login and receive JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Token
+components:
+  schemas:
+    Entry:
+      type: object
+      properties:
+        id:
+          type: integer
+        author:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: integer
+        updatedAt:
+          type: integer
